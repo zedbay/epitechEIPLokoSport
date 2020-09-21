@@ -1,0 +1,49 @@
+version: "3"
+services:
+
+  neo4j: 
+    image: neo4j:3.5.9
+    ports:
+      - 7474:7474
+      - 7687:7687
+    volumes:
+      - ./loko-sport---api/data:/data
+    networks:
+      - loko-sport-network
+
+  express:
+    image: node:latest
+    working_dir: /usr/src/app/lokoSport
+    ports:
+      - "3000:3000"
+    expose:
+      - "3000"
+    links:
+      - "neo4j:neo4j"
+    depends_on:
+      - neo4j
+    volumes:
+      - ./loko-sport---api/api:/usr/src/app/lokoSport
+    command: bash -c "npm i && npm run dev"
+    networks:
+      - loko-sport-network
+
+  angular:
+    image: node:latest
+    working_dir: /usr/src/app/lokosport
+    depends_on:
+      - express
+    ports:
+      - "4200:4200"
+    links:
+      - "express:express"
+    expose:
+      - "4200"
+    volumes:
+      - ./loko-sport---web:/usr/src/app/lokosport
+    command: bash -c "npm i -g @angular/cli && npm i && ng serve --host 0.0.0.0 --port 4200"
+    networks:
+      - loko-sport-network
+
+networks:
+  loko-sport-network:
